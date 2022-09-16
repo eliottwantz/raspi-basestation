@@ -8,7 +8,7 @@
 // #include <arpa/inet.h>
 // #include <netinet/in.h>
 #include <iostream>
-#include "pb/sensor.pb.h"
+// #include "pb/sensor.pb.h"
 
 #define PORT 8080
 #define MAXLINE 1024
@@ -17,7 +17,7 @@
 int main()
 {
     // auto sensor_data = new pb::SensorData();
-    pb::SensorData test;
+    // pb::SensorData test;
     // sensor_data->set_id("afsfa");
     // sensor_data->set_value(32.0);
 
