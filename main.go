@@ -3,9 +3,14 @@ package main
 import (
 	"app/pb"
 	"fmt"
+	"log"
 	"net"
 
-	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
+)
+
+const (
+	MAXLINE = 1024
 )
 
 func main() {
@@ -20,17 +25,17 @@ func main() {
 	defer conn.Close()
 	fmt.Printf("server listening %s\n", conn.LocalAddr().String())
 
-	// for {
-	// 	message := make([]byte, 1024*8)
-	// 	rlen, remote, err := conn.ReadFromUDP(message[:])
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	data := strings.TrimSpace(string(message[:rlen]))
-	// 	fmt.Printf("received: %s from %s\n", data, remote)
-	// }
-	sdata := &pb.SensorData{Id: uuid.NewString(), Value: 32}
-	fmt.Println(sdata)
-	fmt.Println("sdata.ProtoMessage():", sdata.ProtoReflect())
+	for {
+		message := make([]byte, MAXLINE)
+		rlen, remote, err := conn.ReadFromUDP(message[:])
+		if err != nil {
+			panic(err)
+		}
+		var unmarshalled pb.SensorData
+		err = proto.Unmarshal(message[:rlen], &unmarshalled)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("[%s]: %v", remote, &unmarshalled)
+	}
 }
