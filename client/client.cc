@@ -39,8 +39,17 @@ int main()
     sensor_data.set_id("12");
     sensor_data.set_value(32.2);
 
+    pb::SensorPacketData sensor_packet_data;
+
+    for (int i = 0; i < 2; i++)
+    {
+        pb::SensorData *sensor_data = sensor_packet_data.add_data();
+        sensor_data->set_id("idlol");
+        sensor_data->set_value(22.2);
+    }
+
     std::string serialized;
-    sensor_data.SerializeToString(&serialized);
+    sensor_packet_data.SerializeToString(&serialized);
 
     sendto(sockfd, serialized.c_str(), serialized.length(),
            MSG_CONFIRM, (const struct sockaddr *)&servaddr,

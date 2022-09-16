@@ -31,7 +31,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var unmarshalled pb.SensorData
+		var unmarshalled pb.SensorPacketData
 		err = proto.Unmarshal(message[:rlen], &unmarshalled)
 		if err != nil {
 			log.Fatalln(err)
