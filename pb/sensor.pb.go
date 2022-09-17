@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.21.6
-// source: sensor.proto
+// source: pb/sensor.proto
 
 package pb
 
@@ -32,7 +32,7 @@ type SensorData struct {
 func (x *SensorData) Reset() {
 	*x = SensorData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_sensor_proto_msgTypes[0]
+		mi := &file_pb_sensor_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -45,7 +45,7 @@ func (x *SensorData) String() string {
 func (*SensorData) ProtoMessage() {}
 
 func (x *SensorData) ProtoReflect() protoreflect.Message {
-	mi := &file_sensor_proto_msgTypes[0]
+	mi := &file_pb_sensor_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *SensorData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SensorData.ProtoReflect.Descriptor instead.
 func (*SensorData) Descriptor() ([]byte, []int) {
-	return file_sensor_proto_rawDescGZIP(), []int{0}
+	return file_pb_sensor_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SensorData) GetId() string {
@@ -86,7 +86,7 @@ type SensorPacketData struct {
 func (x *SensorPacketData) Reset() {
 	*x = SensorPacketData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_sensor_proto_msgTypes[1]
+		mi := &file_pb_sensor_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -99,7 +99,7 @@ func (x *SensorPacketData) String() string {
 func (*SensorPacketData) ProtoMessage() {}
 
 func (x *SensorPacketData) ProtoReflect() protoreflect.Message {
-	mi := &file_sensor_proto_msgTypes[1]
+	mi := &file_pb_sensor_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -112,7 +112,7 @@ func (x *SensorPacketData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SensorPacketData.ProtoReflect.Descriptor instead.
 func (*SensorPacketData) Descriptor() ([]byte, []int) {
-	return file_sensor_proto_rawDescGZIP(), []int{1}
+	return file_pb_sensor_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SensorPacketData) GetData() []*SensorData {
@@ -122,38 +122,38 @@ func (x *SensorPacketData) GetData() []*SensorData {
 	return nil
 }
 
-var File_sensor_proto protoreflect.FileDescriptor
+var File_pb_sensor_proto protoreflect.FileDescriptor
 
-var file_sensor_proto_rawDesc = []byte{
-	0x0a, 0x0c, 0x73, 0x65, 0x6e, 0x73, 0x6f, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x02,
-	0x70, 0x62, 0x22, 0x32, 0x0a, 0x0a, 0x53, 0x65, 0x6e, 0x73, 0x6f, 0x72, 0x44, 0x61, 0x74, 0x61,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x02, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x36, 0x0a, 0x10, 0x53, 0x65, 0x6e, 0x73, 0x6f, 0x72,
-	0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x22, 0x0a, 0x04, 0x64, 0x61,
-	0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x65,
-	0x6e, 0x73, 0x6f, 0x72, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x42, 0x05,
-	0x5a, 0x03, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+var file_pb_sensor_proto_rawDesc = []byte{
+	0x0a, 0x0f, 0x70, 0x62, 0x2f, 0x73, 0x65, 0x6e, 0x73, 0x6f, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x12, 0x02, 0x70, 0x62, 0x22, 0x32, 0x0a, 0x0a, 0x53, 0x65, 0x6e, 0x73, 0x6f, 0x72, 0x44,
+	0x61, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x02, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x36, 0x0a, 0x10, 0x53, 0x65, 0x6e,
+	0x73, 0x6f, 0x72, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x44, 0x61, 0x74, 0x61, 0x12, 0x22, 0x0a,
+	0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x62,
+	0x2e, 0x53, 0x65, 0x6e, 0x73, 0x6f, 0x72, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74,
+	0x61, 0x42, 0x05, 0x5a, 0x03, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_sensor_proto_rawDescOnce sync.Once
-	file_sensor_proto_rawDescData = file_sensor_proto_rawDesc
+	file_pb_sensor_proto_rawDescOnce sync.Once
+	file_pb_sensor_proto_rawDescData = file_pb_sensor_proto_rawDesc
 )
 
-func file_sensor_proto_rawDescGZIP() []byte {
-	file_sensor_proto_rawDescOnce.Do(func() {
-		file_sensor_proto_rawDescData = protoimpl.X.CompressGZIP(file_sensor_proto_rawDescData)
+func file_pb_sensor_proto_rawDescGZIP() []byte {
+	file_pb_sensor_proto_rawDescOnce.Do(func() {
+		file_pb_sensor_proto_rawDescData = protoimpl.X.CompressGZIP(file_pb_sensor_proto_rawDescData)
 	})
-	return file_sensor_proto_rawDescData
+	return file_pb_sensor_proto_rawDescData
 }
 
-var file_sensor_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_sensor_proto_goTypes = []interface{}{
+var file_pb_sensor_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_pb_sensor_proto_goTypes = []interface{}{
 	(*SensorData)(nil),       // 0: pb.SensorData
 	(*SensorPacketData)(nil), // 1: pb.SensorPacketData
 }
-var file_sensor_proto_depIdxs = []int32{
+var file_pb_sensor_proto_depIdxs = []int32{
 	0, // 0: pb.SensorPacketData.data:type_name -> pb.SensorData
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
@@ -162,13 +162,13 @@ var file_sensor_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_sensor_proto_init() }
-func file_sensor_proto_init() {
-	if File_sensor_proto != nil {
+func init() { file_pb_sensor_proto_init() }
+func file_pb_sensor_proto_init() {
+	if File_pb_sensor_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_sensor_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_pb_sensor_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SensorData); i {
 			case 0:
 				return &v.state
@@ -180,7 +180,7 @@ func file_sensor_proto_init() {
 				return nil
 			}
 		}
-		file_sensor_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_pb_sensor_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SensorPacketData); i {
 			case 0:
 				return &v.state
@@ -197,18 +197,18 @@ func file_sensor_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_sensor_proto_rawDesc,
+			RawDescriptor: file_pb_sensor_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_sensor_proto_goTypes,
-		DependencyIndexes: file_sensor_proto_depIdxs,
-		MessageInfos:      file_sensor_proto_msgTypes,
+		GoTypes:           file_pb_sensor_proto_goTypes,
+		DependencyIndexes: file_pb_sensor_proto_depIdxs,
+		MessageInfos:      file_pb_sensor_proto_msgTypes,
 	}.Build()
-	File_sensor_proto = out.File
-	file_sensor_proto_rawDesc = nil
-	file_sensor_proto_goTypes = nil
-	file_sensor_proto_depIdxs = nil
+	File_pb_sensor_proto = out.File
+	file_pb_sensor_proto_rawDesc = nil
+	file_pb_sensor_proto_goTypes = nil
+	file_pb_sensor_proto_depIdxs = nil
 }

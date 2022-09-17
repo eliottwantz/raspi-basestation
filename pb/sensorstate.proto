@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option go_package = "/pb";
+
+package pb;
+
+message BrakeManager {
+    enum States {
+        INIT = 0;
+        IDLE = 1;
+        CALIBRATION = 2;
+        READY = 3;
+        BRAKING = 4;
+        EMERGENCY_BRAKING = 5;
+    }
+    States state = 1;
+}
+
+message MainComputer {
+    enum States {
+        SLEEP = 0;
+        STATIC_FAULT = 1;
+        DYNAMIC_FAULT = 2;
+        SAFE_TO_APPROACH = 3;
+        INITIALIZATION = 4;
+        SAFE_TO_LAUNCH = 5;
+        ACCELERATING = 6;
+        EMERGENCY_BRAKING = 7;
+        END_BRAKES = 8;
+    }
+    States state = 1;
+}
+
+message SensorState {
+    MainComputer main_computer = 1;
+    BrakeManager brake_manager = 2;
+}

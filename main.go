@@ -31,11 +31,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var unmarshalled pb.SensorPacketData
+		var unmarshalled pb.SensorState
 		err = proto.Unmarshal(message[:rlen], &unmarshalled)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("[%s]: %v", remote, &unmarshalled)
+		fmt.Printf("[%s]: %v\n", remote, &unmarshalled)
 	}
 }

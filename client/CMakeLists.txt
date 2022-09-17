@@ -14,32 +14,29 @@ else()
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 endif()
 
-# Proto file
-get_filename_component(sensor_proto "../pb/sensor.proto" ABSOLUTE)
-get_filename_component(sensor_proto_path "${sensor_proto}" PATH)
+# # Proto file
+# get_filename_component(protos "../pb/sensor.proto" ABSOLUTE)
+# get_filename_component(sensor_proto_path "${protos}" PATH)
 
-# Generated sources
-set(sensor_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.cc")
-set(sensor_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.h")
-add_custom_command(
-      OUTPUT "${sensor_proto_srcs}" "${sensor_proto_hdrs}"
-      COMMAND ${_PROTOBUF_PROTOC}
-      ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-        -I "${sensor_proto_path}"
-        "${sensor_proto}"
-      DEPENDS "${sensor_proto}")
+# # Generated sources
+# set(sensor_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.cc")
+# set(sensor_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.h")
+# add_custom_command(
+#       OUTPUT "${sensor_proto_srcs}" "${sensor_proto_hdrs}"
+#       COMMAND ${_PROTOBUF_PROTOC}
+#       ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+#         -I "${sensor_proto_path}"
+#         "${protos}"
+#       DEPENDS "${protos}")
 
-# Include generated *.pb.h files
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+# include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# sensor_proto
-add_library(sensor_proto
-  ${sensor_proto_srcs}
-  ${sensor_proto_hdrs})
-target_link_libraries(sensor_proto
-  ${_REFLECTION}
-  ${_GRPC_GRPCPP}
-  ${_PROTOBUF_LIBPROTOBUF})
+# protos
+file(GLOB ProtoFiles "../pb/*.proto")
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
+add_library(protos ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(protos ${_REFLECTION} ${_PROTOBUF_LIBPROTOBUF})
 
 
 # Targets service_client
@@ -48,8 +45,7 @@ foreach(_target
   add_executable(${_target}
     "${_target}.cc")
   target_link_libraries(${_target}
-    sensor_proto
+    protos
     ${_REFLECTION}
-    ${_GRPC_GRPCPP}
     ${_PROTOBUF_LIBPROTOBUF})
 endforeach()

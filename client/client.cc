@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "sensor.pb.h"
+#include "sensorstate.pb.h"
 
 #define PORT 8080
 #define MAXLINE 1024
@@ -35,21 +36,18 @@ int main()
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
     // Creating protobuf message
-    pb::SensorData sensor_data;
-    sensor_data.set_id("12");
-    sensor_data.set_value(32.2);
+    auto sensor_state = new pb::SensorState();
+    auto main_computer = new pb::MainComputer();
+    auto brake_manager = new pb::BrakeManager();
 
-    pb::SensorPacketData sensor_packet_data;
+    main_computer->set_state(pb::MainComputer_States_ACCELERATING);
+    brake_manager->set_state(pb::BrakeManager_States_BRAKING);
 
-    for (int i = 0; i < 2; i++)
-    {
-        pb::SensorData *sensor_data = sensor_packet_data.add_data();
-        sensor_data->set_id("idlol");
-        sensor_data->set_value(22.2);
-    }
+    sensor_state->set_allocated_main_computer(main_computer);
+    sensor_state->set_allocated_brake_manager(brake_manager);
 
     std::string serialized;
-    sensor_packet_data.SerializeToString(&serialized);
+    sensor_state->SerializeToString(&serialized);
 
     sendto(sockfd, serialized.c_str(), serialized.length(),
            MSG_CONFIRM, (const struct sockaddr *)&servaddr,
