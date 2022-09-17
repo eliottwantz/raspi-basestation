@@ -13,23 +13,6 @@ find_program(_PROTOBUF_PROTOC protoc)
 else()
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 endif()
-
-# # Proto file
-# get_filename_component(protos "../pb/sensor.proto" ABSOLUTE)
-# get_filename_component(sensor_proto_path "${protos}" PATH)
-
-# # Generated sources
-# set(sensor_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.cc")
-# set(sensor_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/sensor.pb.h")
-# add_custom_command(
-#       OUTPUT "${sensor_proto_srcs}" "${sensor_proto_hdrs}"
-#       COMMAND ${_PROTOBUF_PROTOC}
-#       ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-#         -I "${sensor_proto_path}"
-#         "${protos}"
-#       DEPENDS "${protos}")
-
-# include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # protos
