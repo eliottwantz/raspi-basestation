@@ -14,6 +14,14 @@ message BrakeManager {
         EMERGENCY_BRAKING = 5;
     }
     States state = 1;
+    bool hydrolic_pressure_loss = 2;
+    bool CRITICAL_pod_acceleration_mesure_timeout = 3;
+    bool CRITICAL_pod_deceleration_instruction_timeout = 4;
+    bool verin_blocked = 5;
+    bool emergency_valve_open_without_hydrolic_pressor_diminution = 6;
+    bool CRITICAL_emergency_brakes_without_deceleration = 7;
+    bool distance_mesured_lowered_as_desired = 8;
+    bool distance_mesured_higher_as_desired = 9;
 }
 
 message MainComputer {
