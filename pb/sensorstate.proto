@@ -20,8 +20,8 @@ message BrakeManager {
     bool verin_blocked = 5;
     bool emergency_valve_open_without_hydrolic_pressor_diminution = 6;
     bool CRITICAL_emergency_brakes_without_deceleration = 7;
-    bool distance_mesured_lowered_as_desired = 8;
-    bool distance_mesured_higher_as_desired = 9;
+    bool mesured_distance_less_than_desired = 8;
+    bool mesured_distance_greater_as_desired = 9;
 }
 
 message MainComputer {
