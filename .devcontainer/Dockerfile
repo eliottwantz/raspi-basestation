@@ -20,7 +20,7 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 # RUN su vscode -c "${VCPKG_ROOT}/vcpkg install"
 # [Optional] Uncomment this section to install additional packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends wget unzip
+    && apt-get -y install --no-install-recommends wget unzip sqlite3
 
 RUN cd /tmp && wget https://github.com/protocolbuffers/protobuf/releases/download/v21.6/protobuf-cpp-3.21.6.zip && unzip protobuf-cpp-3.21.6.zip -d /opt 
 RUN cd /opt/protobuf-3.21.6 && cmake . && cmake --build . --parallel 10

@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 
+	"app/db"
+
 	"google.golang.org/protobuf/proto"
 )
 
@@ -14,6 +16,15 @@ const (
 )
 
 func main() {
+	pdb, err := db.OpenDB()
+	if err != nil {
+		panic(err)
+	}
+	err = pdb.CreateTables()
+	if err != nil {
+		panic(err)
+	}
+
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: 8080,
 		IP:   net.ParseIP("127.0.0.1"),
@@ -31,11 +42,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		var unmarshalled pb.SensorState
-		err = proto.Unmarshal(message[:rlen], &unmarshalled)
+		var sensorState pb.SensorState
+		err = proto.Unmarshal(message[:rlen], &sensorState)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("[%s]: %v\n", remote, &unmarshalled)
+		fmt.Printf("[%s]: %v\n", remote, &sensorState)
 	}
 }
