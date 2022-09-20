@@ -17,7 +17,8 @@ var (
 func Open() (*sqlc.Queries, error) {
 	ctx := context.Background()
 
-	db, err := sql.Open("sqlite", "./database/polyloop.db")
+	db, err := sql.Open("sqlite", ":memory:") // For tests purpuses
+	// db, err := sql.Open("sqlite", "./database/polyloop.db")
 	if err != nil {
 		return nil, err
 	}
