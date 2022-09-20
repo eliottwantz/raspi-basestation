@@ -1,10 +1,10 @@
-CREATE TABLE sensors (
+CREATE TABLE IF NOT EXISTS sensors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  mesure TEXT
+  mesure TEXT NOT NULL
 );
 
-CREATE TABLE sensors_data (
+CREATE TABLE IF NOT EXISTS sensors_datas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   value TEXT NOT NULL,
   sensor_id INTEGER NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE sensors_data (
   FOREIGN KEY(sensor_id) REFERENCES sensors(id)
 );
 
-CREATE TABLE brake_manager (
+CREATE TABLE IF NOT EXISTS brake_manager (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   state INTEGER NOT NULL,
   hydrolic_pressure_loss INTEGER CHECK(hydrolic_pressure_loss IN (0, 1)) NOT NULL,
@@ -33,12 +33,12 @@ CREATE TABLE brake_manager (
   mesured_distance_greater_as_desired INTEGER CHECK(mesured_distance_greater_as_desired IN (0, 1)) NOT NULL
 );
 
-CREATE TABLE main_computer (
+CREATE TABLE IF NOT EXISTS main_computer (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   state INTEGER NOT NULL
 );
 
-CREATE TABLE control_data (
+CREATE TABLE IF NOT EXISTS control_datas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   main_computer_id INTEGER NOT NULL,
   brake_manager_id INTEGER NOT NULL,

@@ -2,10 +2,9 @@
 // versions:
 //   sqlc v1.15.0
 
-package db
+package sqlc
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -22,7 +21,7 @@ type BrakeManager struct {
 	MesuredDistanceGreaterAsDesired                    int64 `json:"mesured_distance_greater_as_desired"`
 }
 
-type ControlDatum struct {
+type ControlData struct {
 	ID             int64     `json:"id"`
 	MainComputerID int64     `json:"main_computer_id"`
 	BrakeManagerID int64     `json:"brake_manager_id"`
@@ -36,12 +35,12 @@ type MainComputer struct {
 }
 
 type Sensor struct {
-	ID     int64          `json:"id"`
-	Name   string         `json:"name"`
-	Mesure sql.NullString `json:"mesure"`
+	ID     int64  `json:"id"`
+	Name   string `json:"name"`
+	Mesure string `json:"mesure"`
 }
 
-type SensorsDatum struct {
+type SensorsData struct {
 	ID        int64     `json:"id"`
 	Value     string    `json:"value"`
 	SensorID  int64     `json:"sensor_id"`
