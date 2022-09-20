@@ -35,3 +35,4 @@ RUN chown -R vscode ${GOPATH} ${GOROOT}
 
 USER vscode
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
