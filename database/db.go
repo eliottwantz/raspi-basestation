@@ -1,27 +1,53 @@
 package database
 
 import (
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	// gormsqlite "gorm.io/driver/sqlite"
+	// "gorm.io/gorm"
+
+	"app/database/sqlc"
+	"context"
+	"database/sql"
+	_ "embed"
+
+	_ "modernc.org/sqlite"
 )
 
-func Open() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("./database/polyloop.db"), &gorm.Config{
-		SkipDefaultTransaction: true,
-		PrepareStmt:            true,
-	})
+var (
+	//go:embed sql/schema.sql
+	schema string
+)
+
+func Open() (*sqlc.Queries, error) {
+	ctx := context.Background()
+
+	// db, err := sql.Open("sqlite", ":memory:") // For tests purpuses
+	db, err := sql.Open("sqlite", "./database/polyloop.sqlite3")
 	if err != nil {
-		panic("failed to connect database")
+		return nil, err
 	}
-	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{})
-	if err != nil {
-		panic(err)
+	defer db.Close()
+
+	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+		return nil, err
 	}
-	return db, nil
+
+	if _, err := db.ExecContext(ctx, schema); err != nil {
+		return nil, err
+	}
+
+	return sqlc.New(db), nil
 }
 
-func GetCount(db *gorm.DB) int64 {
-	var count int64
-	db.Model(&MainComputer{}).Count(&count)
-	return count
-}
+// func Migrate() {
+// 	db, err := gorm.Open(gormsqlite.Open("./database/polyloop.db"), &gorm.Config{
+// 		SkipDefaultTransaction: true,
+// 		PrepareStmt:            true,
+// 	})
+// 	if err != nil {
+// 		panic("failed to connect database")
+// 	}
+// 	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{})
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }

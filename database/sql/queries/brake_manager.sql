@@ -2,7 +2,7 @@
 SELECT
     *
 FROM
-    brake_manager
+    brake_managers
 WHERE
     id = ?
 LIMIT
@@ -12,13 +12,13 @@ LIMIT
 SELECT
     *
 FROM
-    brake_manager
+    brake_managers
 ORDER BY
     id;
 
 -- name: CreateBrakeManager :one
 INSERT INTO
-    brake_manager (
+    brake_managers (
         state,
         hydrolic_pressure_loss,
         critical_pod_acceleration_mesure_timeout,
@@ -34,6 +34,6 @@ VALUES
 
 -- name: DeleteBrakeManager :exec
 DELETE FROM
-    brake_manager
+    brake_managers
 WHERE
     id = ?;

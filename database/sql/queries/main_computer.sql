@@ -1,29 +1,35 @@
--- name: GetMainComputerState :one
+-- name: GetMainComputer :one
 SELECT
   *
 FROM
-  main_computer
+  main_computers
 WHERE
   id = ?
 LIMIT
   1;
 
--- name: GetMainComputerStates :many
+-- name: GetMainComputerCount :one
+SELECT
+  COUNT(*)
+FROM
+  main_computers;
+
+-- name: GetMainComputers :many
 SELECT
   *
 FROM
-  main_computer
+  main_computers
 ORDER BY
   id;
 
--- name: CreateMainComputerState :one
+-- name: CreateMainComputer :one
 INSERT INTO
-  main_computer (state)
+  main_computers (state)
 VALUES
   (?) RETURNING *;
 
--- name: DeleteMainComputerState :exec
+-- name: DeleteMainComputer :exec
 DELETE FROM
-  main_computer
+  main_computers
 WHERE
   id = ?;

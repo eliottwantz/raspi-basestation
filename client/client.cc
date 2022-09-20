@@ -87,7 +87,6 @@ int main()
             start_interval = std::clock();
             count++;
             std::cout << "printf: " << duration << " count: " << count << '\n';
-            std::cout << "printf: " << duration << '\n';
         }
         duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     }

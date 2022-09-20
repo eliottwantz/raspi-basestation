@@ -15,7 +15,7 @@ const (
 )
 
 func main() {
-	db, err := database.Open()
+	_, err := database.Open()
 	if err != nil {
 		panic(err)
 	}
@@ -31,6 +31,8 @@ func main() {
 	defer conn.Close()
 	fmt.Printf("server listening %s\n", conn.LocalAddr().String())
 
+	count := 0
+
 	for {
 		message := make([]byte, MAXLINE)
 		rlen, remote, err := conn.ReadFromUDP(message[:])
@@ -43,16 +45,27 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		PanicError(db.Create(&sensorState.MainComputer).Error)
-		PanicError(db.Create(&sensorState.BrakeManager).Error)
+		// PanicError(db.Create(&sensorState.MainComputer).Error)
+		// PanicError(db.Create(&sensorState.BrakeManager).Error)
+		// _, err = db.CreateMainComputer(context.Background(), int64(sensorState.MainComputer.State))
+		// PanicError(err)
+		// _, err = db.CreateBrakeManager(context.Background(), sqlc.CreateBrakeManagerParams{
+		// 	State:                                int64(sensorState.BrakeManager.State),
+		// 	HydrolicPressureLoss:                 sensorState.BrakeManager.HydrolicPressureLoss,
+		// 	CriticalPodAccelerationMesureTimeout: sensorState.BrakeManager.CriticalPodAccelerationMesureTimeout,
+		// 	CriticalPodDecelerationInstructionTimeout: sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
+		// 	VerinBlocked: sensorState.BrakeManager.VerinBlocked,
+		// 	EmergencyValveOpenWithoutHydrolicPressorDiminution: sensorState.BrakeManager.EmergencyValveOpenWithoutHydrolicPressorDiminution,
+		// 	CriticalEmergencyBrakesWithoutDeceleration:         sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
+		// 	MesuredDistanceLessThanDesired:                     sensorState.BrakeManager.MesuredDistanceLessThanDesired,
+		// 	MesuredDistanceGreaterAsDesired:                    sensorState.BrakeManager.MesuredDistanceGreaterAsDesired,
+		// })
+		// PanicError(err)
 
-		var mc database.MainComputer
-		var bm database.BrakeManager
-		PanicError(db.First(&mc).Error)
-		PanicError(db.First(&bm).Error)
-		// fmt.Println(&mc)
-		// fmt.Println(&bm)
-		log.Printf("[%s] : Count = %d\n", remote, database.GetCount(db))
+		// count, err := db.GetMainComputerCount(context.Background())
+		// PanicError(err)
+		count++
+		log.Printf("[%s] : Count = %d\n", remote, count)
 	}
 }
 
