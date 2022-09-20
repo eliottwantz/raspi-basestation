@@ -2,6 +2,8 @@ package main
 
 import (
 	"app/database"
+	"context"
+	"fmt"
 )
 
 const (
@@ -9,11 +11,15 @@ const (
 )
 
 func main() {
-	_, err := database.Open()
+	db, err := database.Open()
 	if err != nil {
 		panic(err)
 	}
-
+	mc, err := db.GetMainComputerStates(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(mc)
 	// conn, err := net.ListenUDP("udp", &net.UDPAddr{
 	// 	Port: 8080,
 	// 	IP:   net.ParseIP("127.0.0.1"),
