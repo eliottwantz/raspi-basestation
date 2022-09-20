@@ -1,16 +1,19 @@
 package main
 
-import "app/db"
+import (
+	"app/database"
+)
 
 const (
 	MAXLINE = 1024
 )
 
 func main() {
-	_, err := db.Open()
+	_, err := database.Open()
 	if err != nil {
 		panic(err)
 	}
+
 	// conn, err := net.ListenUDP("udp", &net.UDPAddr{
 	// 	Port: 8080,
 	// 	IP:   net.ParseIP("127.0.0.1"),

@@ -1,7 +1,7 @@
-package db
+package database
 
 import (
-	"app/db/sqlc"
+	"app/database/sqlc"
 	"context"
 	"database/sql"
 	_ "embed"
