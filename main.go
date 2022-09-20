@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 
+	// "github.com/bvinc/go-sqlite-lite/sqlite3"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -15,10 +16,11 @@ const (
 )
 
 func main() {
-	_, err := database.Open()
-	if err != nil {
-		panic(err)
-	}
+	// _, err := database.Open()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	db := database.Open()
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: 8080,
@@ -45,8 +47,8 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		// PanicError(db.Create(&sensorState.MainComputer).Error)
-		// PanicError(db.Create(&sensorState.BrakeManager).Error)
+		PanicError(db.Create(&sensorState.MainComputer).Error)
+		PanicError(db.Create(&sensorState.BrakeManager).Error)
 		// _, err = db.CreateMainComputer(context.Background(), int64(sensorState.MainComputer.State))
 		// PanicError(err)
 		// _, err = db.CreateBrakeManager(context.Background(), sqlc.CreateBrakeManagerParams{
