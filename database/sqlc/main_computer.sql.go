@@ -16,7 +16,7 @@ VALUES
   (?) RETURNING id, state
 `
 
-func (q *Queries) CreateMainComputerState(ctx context.Context, state int64) (MainComputer, error) {
+func (q *Queries) CreateMainComputerState(ctx context.Context, state string) (MainComputer, error) {
 	row := q.db.QueryRowContext(ctx, createMainComputerState, state)
 	var i MainComputer
 	err := row.Scan(&i.ID, &i.State)

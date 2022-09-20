@@ -30,8 +30,8 @@ type ControlData struct {
 }
 
 type MainComputer struct {
-	ID    int64 `json:"id"`
-	State int64 `json:"state"`
+	ID    int64  `json:"id"`
+	State string `json:"state"`
 }
 
 type Sensor struct {

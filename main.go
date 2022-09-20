@@ -44,11 +44,10 @@ func main() {
 			log.Fatalln(err)
 		}
 		fmt.Printf("[%s]: %v\n", remote, &sensorState)
-		mc, err := db.CreateMainComputerState(context.Background(), int64(sensorState.MainComputer.State))
+		mc, err := db.CreateMainComputerState(context.Background(), pb.MainComputer_States_name[int32(sensorState.MainComputer.State)])
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println("FROM DB:", mc)
-		fmt.Println("STATE:", pb.MainComputer_States_name[int32(mc.State)])
 	}
 }
