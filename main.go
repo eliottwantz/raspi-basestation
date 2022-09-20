@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/database"
+	"app/database/sqlc"
 	"app/pb"
 	"context"
 	"fmt"
@@ -48,6 +49,21 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		bm, err := db.CreateBrakeManager(context.Background(), sqlc.CreateBrakeManagerParams{
+			State:                                int64(sensorState.BrakeManager.State),
+			HydrolicPressureLoss:                 sensorState.BrakeManager.HydrolicPressureLoss,
+			CriticalPodAccelerationMesureTimeout: sensorState.BrakeManager.CriticalPodAccelerationMesureTimeout,
+			CriticalPodDecelerationInstructionTimeout: sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
+			VerinBlocked: sensorState.BrakeManager.VerinBlocked,
+			EmergencyValveOpenWithoutHydrolicPressorDiminution: sensorState.BrakeManager.EmergencyValveOpenWithoutHydrolicPressorDiminution,
+			CriticalEmergencyBrakesWithoutDeceleration:         sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
+			MesuredDistanceLessThanDesired:                     sensorState.BrakeManager.MesuredDistanceLessThanDesired,
+			MesuredDistanceGreaterAsDesired:                    sensorState.BrakeManager.MesuredDistanceGreaterAsDesired,
+		})
+		if err != nil {
+			panic(err)
+		}
 		fmt.Println("FROM DB:", mc)
+		fmt.Println("FROM DB:", bm)
 	}
 }
