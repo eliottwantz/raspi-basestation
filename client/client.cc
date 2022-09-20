@@ -66,12 +66,31 @@ void sendProtobuf(int sockfd, sockaddr_in &servaddr, pb::SensorState *sensor_sta
 
 int main()
 {
+    // using namespace std::chrono_literals;
+
     int sockfd = createSocket();
     struct sockaddr_in servaddr = fillServerInfo();
 
-    pb::SensorState *sensor_state = createNewProtobufs();
+    double duration;
+    double interval = 0.01;
+    uint count = 0;
+    std::clock_t start = std::clock();
+    std::clock_t start_interval = std::clock();
 
-    sendProtobuf(sockfd, servaddr, sensor_state);
+    while (duration <= 5.0)
+    {
+        if ((std::clock() - start_interval) / (double)CLOCKS_PER_SEC >= interval)
+        {
+
+            pb::SensorState *sensor_state = createNewProtobufs();
+            sendProtobuf(sockfd, servaddr, sensor_state);
+            start_interval = std::clock();
+            count++;
+            std::cout << "printf: " << duration << " count: " << count << '\n';
+            std::cout << "printf: " << duration << '\n';
+        }
+        duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+    }
 
     close(sockfd);
     return 0;

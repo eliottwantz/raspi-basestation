@@ -1,31 +1,27 @@
 package database
 
 import (
-	"app/database/sqlc"
-	"context"
-	"database/sql"
-	_ "embed"
-
-	_ "modernc.org/sqlite"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-var (
-	//go:embed sql/schema.sql
-	schema string
-)
-
-func Open() (*sqlc.Queries, error) {
-	ctx := context.Background()
-
-	db, err := sql.Open("sqlite", ":memory:") // For tests purpuses
-	// db, err := sql.Open("sqlite", "./database/polyloop.db")
+func Open() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("./database/polyloop.db"), &gorm.Config{
+		SkipDefaultTransaction: true,
+		PrepareStmt:            true,
+	})
 	if err != nil {
-		return nil, err
+		panic("failed to connect database")
 	}
-
-	if _, err := db.ExecContext(ctx, schema); err != nil {
-		return nil, err
+	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{})
+	if err != nil {
+		panic(err)
 	}
+	return db, nil
+}
 
-	return sqlc.New(db), nil
+func GetCount(db *gorm.DB) int64 {
+	var count int64
+	db.Model(&MainComputer{}).Count(&count)
+	return count
 }

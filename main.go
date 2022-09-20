@@ -2,9 +2,7 @@ package main
 
 import (
 	"app/database"
-	"app/database/sqlc"
 	"app/pb"
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -44,26 +42,22 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("[%s]: %v\n", remote, &sensorState)
-		mc, err := db.CreateMainComputerState(context.Background(), pb.MainComputer_States_name[int32(sensorState.MainComputer.State)])
-		if err != nil {
-			panic(err)
-		}
-		bm, err := db.CreateBrakeManager(context.Background(), sqlc.CreateBrakeManagerParams{
-			State:                                int64(sensorState.BrakeManager.State),
-			HydrolicPressureLoss:                 sensorState.BrakeManager.HydrolicPressureLoss,
-			CriticalPodAccelerationMesureTimeout: sensorState.BrakeManager.CriticalPodAccelerationMesureTimeout,
-			CriticalPodDecelerationInstructionTimeout: sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
-			VerinBlocked: sensorState.BrakeManager.VerinBlocked,
-			EmergencyValveOpenWithoutHydrolicPressorDiminution: sensorState.BrakeManager.EmergencyValveOpenWithoutHydrolicPressorDiminution,
-			CriticalEmergencyBrakesWithoutDeceleration:         sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
-			MesuredDistanceLessThanDesired:                     sensorState.BrakeManager.MesuredDistanceLessThanDesired,
-			MesuredDistanceGreaterAsDesired:                    sensorState.BrakeManager.MesuredDistanceGreaterAsDesired,
-		})
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("FROM DB:", mc)
-		fmt.Println("FROM DB:", bm)
+
+		PanicError(db.Create(&sensorState.MainComputer).Error)
+		PanicError(db.Create(&sensorState.BrakeManager).Error)
+
+		var mc database.MainComputer
+		var bm database.BrakeManager
+		PanicError(db.First(&mc).Error)
+		PanicError(db.First(&bm).Error)
+		// fmt.Println(&mc)
+		// fmt.Println(&bm)
+		log.Printf("[%s] : Count = %d\n", remote, database.GetCount(db))
+	}
+}
+
+func PanicError(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
