@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
@@ -77,15 +78,6 @@ func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
 	ssConn.Close()
 	fmt.Println("\nSensorState COUNT =", ssCount)
 	fmt.Println("SensorData COUNT =", sdCount)
-
-	// var mc database.MainComputer
-	// if err := db.Last(&mc).Error; err != nil {
-	// 	handleError(err)
-	// }
-	// var bm database.BrakeManager
-	// if err := db.Last(&bm).Error; err != nil {
-	// 	handleError(err)
-	// }
 }
 
 func HandleSensorState(conn *net.UDPConn, receive chan int) {
@@ -100,8 +92,8 @@ func HandleSensorState(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorState)
 		handleError(err)
 
-		handleError(db.Create(&sensorState.MainComputer).Error)
-		handleError(db.Create(&sensorState.BrakeManager).Error)
+		handleError(db.Create(&database.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
+		handleError(db.Create(&database.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
@@ -121,7 +113,7 @@ func HandleSensorData(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorData)
 		handleError(err)
 
-		handleError(db.Create(&sensorData).Error)
+		handleError(db.Create(&database.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
