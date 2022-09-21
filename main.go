@@ -1,56 +1,79 @@
 package main
 
 import (
-	"app/database"
 	"app/pb"
 	"fmt"
 	"log"
 	"net"
-	"sync"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"google.golang.org/protobuf/proto"
-	"gorm.io/gorm"
 )
 
 const (
 	MAXLINE = 1024
-	WORKERS = 100
+	WORKERS = 30
 )
 
 var (
-	db *gorm.DB
+	// db *gorm.DB
+	sensor_states []*pb.SensorState = make([]*pb.SensorState, 0)
 )
 
 func main() {
-	db = database.Open()
-	ListenUDP()
+	// db = database.Open()
+	receive := make(chan *pb.SensorState)
+	quit := make(chan bool)
+	handleInterrupt(quit)
+	ListenUDP(receive, quit)
 }
 
-func ListenUDP() {
-	conn, err := net.ListenPacket("udp", ":8080")
+func handleInterrupt(quit chan bool) {
+	sigs := make(chan os.Signal)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		fmt.Println()
+		quit <- true
+	}()
+}
+
+func ListenUDP(receive chan *pb.SensorState, quit chan bool) {
+	addr, err := net.ResolveUDPAddr("udp", ":8080")
+	handleError(err)
+	conn, err := net.ListenUDP("udp", addr)
 	handleError(err)
 	fmt.Printf("server listening %s\n", conn.LocalAddr().String())
-	var wg sync.WaitGroup
+
 	for i := 0; i < WORKERS; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			HandlePacket(conn, db)
-		}()
+		go HandlePacket(conn, receive)
 	}
-	wg.Wait()
+	go func() {
+		for s := range receive {
+			sensor_states = append(sensor_states, s)
+		}
+	}()
+	<-quit
+	close(receive)
+	conn.Close()
+	fmt.Println("\nsensor_states COUNT =", len(sensor_states))
 }
 
-func HandlePacket(conn net.PacketConn, db *gorm.DB) {
-	defer conn.Close()
+func HandlePacket(conn *net.UDPConn, receive chan *pb.SensorState) {
 	count := 0
 	for {
 		message := make([]byte, MAXLINE)
 		size, addr, err := conn.ReadFrom(message)
-		handleError(err)
+		if err != nil {
+			// log.Printf("Connection closed: %v", err)
+			return
+		}
 		var sensorState pb.SensorState
 		err = proto.Unmarshal(message[:size], &sensorState)
 		handleError(err)
+		receive <- &sensorState
 		// handleError(db.Create(&sensorState.MainComputer).Error)
 		// handleError(db.Create(&sensorState.BrakeManager).Error)
 		count++
