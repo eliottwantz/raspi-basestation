@@ -1,6 +1,7 @@
 package main
 
 import (
+	"app/database"
 	"app/pb"
 	"fmt"
 	"log"
@@ -10,20 +11,21 @@ import (
 	"syscall"
 
 	"google.golang.org/protobuf/proto"
+	"gorm.io/gorm"
 )
 
 const (
 	MAXLINE = 1024
-	WORKERS = 30
+	WORKERS = 100
 )
 
 var (
-	// db *gorm.DB
+	db            *gorm.DB
 	sensor_states []*pb.SensorState = make([]*pb.SensorState, 0)
 )
 
 func main() {
-	// db = database.Open()
+	db = database.Open()
 	receive := make(chan *pb.SensorState)
 	quit := make(chan bool)
 	handleInterrupt(quit)
@@ -59,6 +61,8 @@ func ListenUDP(receive chan *pb.SensorState, quit chan bool) {
 	close(receive)
 	conn.Close()
 	fmt.Println("\nsensor_states COUNT =", len(sensor_states))
+	fmt.Println("Writing to db")
+	writeToDb()
 }
 
 func HandlePacket(conn *net.UDPConn, receive chan *pb.SensorState) {
@@ -78,6 +82,13 @@ func HandlePacket(conn *net.UDPConn, receive chan *pb.SensorState) {
 		// handleError(db.Create(&sensorState.BrakeManager).Error)
 		count++
 		log.Printf("[%s] : COUNT = %d\n", addr, count)
+	}
+}
+
+func writeToDb() {
+	for _, ss := range sensor_states {
+		handleError(db.Create(ss.MainComputer).Error)
+		handleError(db.Create(ss.BrakeManager).Error)
 	}
 }
 
