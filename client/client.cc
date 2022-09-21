@@ -72,12 +72,12 @@ int main()
     struct sockaddr_in servaddr = fillServerInfo();
 
     double duration;
-    double interval = 0.01;
+    double interval = 0.1;
     uint count = 0;
     std::clock_t start = std::clock();
     std::clock_t start_interval = std::clock();
 
-    while (duration <= 5.0)
+    while (duration <= 30.0)
     {
         if ((std::clock() - start_interval) / (double)CLOCKS_PER_SEC >= interval)
         {

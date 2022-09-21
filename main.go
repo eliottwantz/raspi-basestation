@@ -20,13 +20,13 @@ const (
 )
 
 var (
-	db            *gorm.DB
-	sensor_states []*pb.SensorState = make([]*pb.SensorState, 0)
+	db    *gorm.DB
+	count = 0
 )
 
 func main() {
 	db = database.Open()
-	receive := make(chan *pb.SensorState)
+	receive := make(chan int)
 	quit := make(chan bool)
 	handleInterrupt(quit)
 	ListenUDP(receive, quit)
@@ -42,7 +42,7 @@ func handleInterrupt(quit chan bool) {
 	}()
 }
 
-func ListenUDP(receive chan *pb.SensorState, quit chan bool) {
+func ListenUDP(receive chan int, quit chan bool) {
 	addr, err := net.ResolveUDPAddr("udp", ":8080")
 	handleError(err)
 	conn, err := net.ListenUDP("udp", addr)
@@ -53,42 +53,32 @@ func ListenUDP(receive chan *pb.SensorState, quit chan bool) {
 		go HandlePacket(conn, receive)
 	}
 	go func() {
-		for s := range receive {
-			sensor_states = append(sensor_states, s)
+		for c := range receive {
+			count += c
 		}
 	}()
 	<-quit
 	close(receive)
 	conn.Close()
-	fmt.Println("\nsensor_states COUNT =", len(sensor_states))
-	fmt.Println("Writing to db")
-	writeToDb()
+	fmt.Println("\nCOUNT =", count)
 }
 
-func HandlePacket(conn *net.UDPConn, receive chan *pb.SensorState) {
+func HandlePacket(conn *net.UDPConn, receive chan int) {
 	count := 0
 	for {
 		message := make([]byte, MAXLINE)
 		size, addr, err := conn.ReadFrom(message)
 		if err != nil {
-			// log.Printf("Connection closed: %v", err)
 			return
 		}
 		var sensorState pb.SensorState
 		err = proto.Unmarshal(message[:size], &sensorState)
 		handleError(err)
-		receive <- &sensorState
-		// handleError(db.Create(&sensorState.MainComputer).Error)
-		// handleError(db.Create(&sensorState.BrakeManager).Error)
+		handleError(db.Create(&sensorState.MainComputer).Error)
+		handleError(db.Create(&sensorState.BrakeManager).Error)
+		receive <- 1
 		count++
 		log.Printf("[%s] : COUNT = %d\n", addr, count)
-	}
-}
-
-func writeToDb() {
-	for _, ss := range sensor_states {
-		handleError(db.Create(ss.MainComputer).Error)
-		handleError(db.Create(ss.BrakeManager).Error)
 	}
 }
 
