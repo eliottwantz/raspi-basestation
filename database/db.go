@@ -16,25 +16,11 @@ func Open() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{})
+	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{}, &Sensor{}, &SensorData{})
 	if err != nil {
 		panic(err)
 	}
-	return db
-}
-
-func OpenMemory() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	err = db.Exec("PRAGMA journal_mode=off").Error
-	if err != nil {
-		panic(err)
-	}
-	err = db.AutoMigrate(&MainComputer{}, &BrakeManager{})
+	err = db.Create(&Sensor{Name: "premierSensor", Mesure: "km/h"}).Error
 	if err != nil {
 		panic(err)
 	}

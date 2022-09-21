@@ -12,7 +12,8 @@
 #include "sensor.pb.h"
 #include "sensorstate.pb.h"
 
-#define PORT 8080
+#define SSPORT 8080
+#define SDPORT 8081
 #define MAXLINE 1024
 
 int createSocket()
@@ -26,19 +27,19 @@ int createSocket()
     return sockfd;
 }
 
-sockaddr_in fillServerInfo()
+sockaddr_in fillServerInfo(uint16_t port)
 {
     struct sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
 
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(PORT);
+    servaddr.sin_port = htons(port);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
     return servaddr;
 }
 
-pb::SensorState *createNewProtobufs()
+pb::SensorState *createNewSensorState()
 {
     auto sensor_state = new pb::SensorState();
     auto main_computer = new pb::MainComputer();
@@ -56,7 +57,15 @@ pb::SensorState *createNewProtobufs()
     return sensor_state;
 }
 
-void sendProtobuf(int sockfd, sockaddr_in &servaddr, pb::SensorState *sensor_state)
+pb::SensorData *createNewSensorData()
+{
+    auto sensor_data = new pb::SensorData();
+    sensor_data->set_sensor_id(1);
+    sensor_data->set_value(34.0);
+    return sensor_data;
+}
+
+void sendSensorState(int sockfd, sockaddr_in &servaddr, pb::SensorState *sensor_state)
 {
     std::string serialized = sensor_state->SerializeAsString();
     sendto(sockfd, serialized.c_str(), serialized.length(),
@@ -64,12 +73,20 @@ void sendProtobuf(int sockfd, sockaddr_in &servaddr, pb::SensorState *sensor_sta
            sizeof(servaddr));
 }
 
+void sendSensorData(int sockfd, sockaddr_in &servaddr, pb::SensorData *sensor_data)
+{
+    std::string serialized = sensor_data->SerializeAsString();
+    sendto(sockfd, serialized.c_str(), serialized.length(),
+           MSG_CONFIRM, (const struct sockaddr *)&servaddr,
+           sizeof(servaddr));
+}
+
 int main()
 {
-    // using namespace std::chrono_literals;
-
-    int sockfd = createSocket();
-    struct sockaddr_in servaddr = fillServerInfo();
+    int ss_socket = createSocket();
+    int sd_socket = createSocket();
+    struct sockaddr_in ssaddr = fillServerInfo(SSPORT);
+    struct sockaddr_in sdaddr = fillServerInfo(SDPORT);
 
     double duration;
     double interval = 0.1;
@@ -77,13 +94,15 @@ int main()
     std::clock_t start = std::clock();
     std::clock_t start_interval = std::clock();
 
-    while (duration <= 30.0)
+    while (duration <= 2.0)
     {
         if ((std::clock() - start_interval) / (double)CLOCKS_PER_SEC >= interval)
         {
 
-            pb::SensorState *sensor_state = createNewProtobufs();
-            sendProtobuf(sockfd, servaddr, sensor_state);
+            pb::SensorState *sensor_state = createNewSensorState();
+            pb::SensorData *sensor_data = createNewSensorData();
+            sendSensorState(ss_socket, ssaddr, sensor_state);
+            sendSensorData(sd_socket, sdaddr, sensor_data);
             start_interval = std::clock();
             count++;
             std::cout << "printf: " << duration << " count: " << count << '\n';
@@ -91,6 +110,7 @@ int main()
         duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     }
 
-    close(sockfd);
+    close(ss_socket);
+    close(sd_socket);
     return 0;
 }

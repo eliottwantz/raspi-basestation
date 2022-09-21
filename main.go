@@ -20,16 +20,18 @@ const (
 )
 
 var (
-	db    *gorm.DB
-	count = 0
+	db      *gorm.DB
+	ssCount = 0
+	sdCount = 0
 )
 
 func main() {
 	db = database.Open()
-	receive := make(chan int)
+	ssc := make(chan int)
+	sdc := make(chan int)
 	quit := make(chan bool)
 	handleInterrupt(quit)
-	ListenUDP(receive, quit)
+	ListenUDP(ssc, sdc, quit)
 }
 
 func handleInterrupt(quit chan bool) {
@@ -42,28 +44,51 @@ func handleInterrupt(quit chan bool) {
 	}()
 }
 
-func ListenUDP(receive chan int, quit chan bool) {
-	addr, err := net.ResolveUDPAddr("udp", ":8080")
+func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
+	ssAddr, err := net.ResolveUDPAddr("udp", ":8080")
 	handleError(err)
-	conn, err := net.ListenUDP("udp", addr)
+	ssConn, err := net.ListenUDP("udp", ssAddr)
 	handleError(err)
-	fmt.Printf("server listening %s\n", conn.LocalAddr().String())
+
+	sdAddr, err := net.ResolveUDPAddr("udp", ":8081")
+	handleError(err)
+	sdConn, err := net.ListenUDP("udp", sdAddr)
+	handleError(err)
+
+	fmt.Println("server listening \n", ssConn.LocalAddr(), sdConn.LocalAddr())
 
 	for i := 0; i < WORKERS; i++ {
-		go HandlePacket(conn, receive)
+		go HandleSensorState(ssConn, ssc)
+		go HandleSensorData(sdConn, sdc)
 	}
 	go func() {
-		for c := range receive {
-			count += c
+		for c := range ssc {
+			ssCount += c
+		}
+	}()
+	go func() {
+		for c := range sdc {
+			sdCount += c
 		}
 	}()
 	<-quit
-	close(receive)
-	conn.Close()
-	fmt.Println("\nCOUNT =", count)
+	close(ssc)
+	close(sdc)
+	ssConn.Close()
+	fmt.Println("\nSensorState COUNT =", ssCount)
+	fmt.Println("SensorData COUNT =", sdCount)
+
+	// var mc database.MainComputer
+	// if err := db.Last(&mc).Error; err != nil {
+	// 	handleError(err)
+	// }
+	// var bm database.BrakeManager
+	// if err := db.Last(&bm).Error; err != nil {
+	// 	handleError(err)
+	// }
 }
 
-func HandlePacket(conn *net.UDPConn, receive chan int) {
+func HandleSensorState(conn *net.UDPConn, receive chan int) {
 	count := 0
 	for {
 		message := make([]byte, MAXLINE)
@@ -74,8 +99,30 @@ func HandlePacket(conn *net.UDPConn, receive chan int) {
 		var sensorState pb.SensorState
 		err = proto.Unmarshal(message[:size], &sensorState)
 		handleError(err)
+
 		handleError(db.Create(&sensorState.MainComputer).Error)
 		handleError(db.Create(&sensorState.BrakeManager).Error)
+
+		receive <- 1
+		count++
+		log.Printf("[%s] : COUNT = %d\n", addr, count)
+	}
+}
+
+func HandleSensorData(conn *net.UDPConn, receive chan int) {
+	count := 0
+	for {
+		message := make([]byte, MAXLINE)
+		size, addr, err := conn.ReadFrom(message)
+		if err != nil {
+			return
+		}
+		var sensorData pb.SensorData
+		err = proto.Unmarshal(message[:size], &sensorData)
+		handleError(err)
+
+		handleError(db.Create(&sensorData).Error)
+
 		receive <- 1
 		count++
 		log.Printf("[%s] : COUNT = %d\n", addr, count)
