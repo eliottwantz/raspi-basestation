@@ -1,7 +1,7 @@
 package main
 
 import (
-	"app/database"
+	"app/db"
 	"app/server"
 	"fmt"
 	"os"
@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	database.Open()
+	db.Open()
 	ssc := make(chan int)
 	sdc := make(chan int)
 	quit := make(chan bool)

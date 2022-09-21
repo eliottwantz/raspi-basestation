@@ -1,7 +1,7 @@
 package server
 
 import (
-	"app/database"
+	"app/db"
 	"app/internal"
 	"app/pb"
 	"fmt"
@@ -69,8 +69,8 @@ func HandleSensorState(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorState)
 		internal.HandleError(err)
 
-		internal.HandleError(database.DB.Create(&database.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
-		internal.HandleError(database.DB.Create(&database.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
+		internal.HandleError(db.DB.Create(&db.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
+		internal.HandleError(db.DB.Create(&db.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
@@ -90,7 +90,7 @@ func HandleSensorData(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorData)
 		internal.HandleError(err)
 
-		internal.HandleError(database.DB.Create(&database.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
+		internal.HandleError(db.DB.Create(&db.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
