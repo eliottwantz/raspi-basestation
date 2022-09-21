@@ -6,72 +6,59 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 
-	// "github.com/bvinc/go-sqlite-lite/sqlite3"
 	"google.golang.org/protobuf/proto"
+	"gorm.io/gorm"
 )
 
 const (
 	MAXLINE = 1024
+	WORKERS = 100
+)
+
+var (
+	db *gorm.DB
 )
 
 func main() {
-	// _, err := database.Open()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	db := database.Open()
+	db = database.Open()
+	ListenUDP()
+}
 
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{
-		Port: 8080,
-		IP:   net.ParseIP("127.0.0.1"),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	defer conn.Close()
+func ListenUDP() {
+	conn, err := net.ListenPacket("udp", ":8080")
+	handleError(err)
 	fmt.Printf("server listening %s\n", conn.LocalAddr().String())
+	var wg sync.WaitGroup
+	for i := 0; i < WORKERS; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			HandlePacket(conn, db)
+		}()
+	}
+	wg.Wait()
+}
 
+func HandlePacket(conn net.PacketConn, db *gorm.DB) {
+	defer conn.Close()
 	count := 0
-
 	for {
 		message := make([]byte, MAXLINE)
-		rlen, remote, err := conn.ReadFromUDP(message[:])
-		if err != nil {
-			panic(err)
-		}
+		size, addr, err := conn.ReadFrom(message)
+		handleError(err)
 		var sensorState pb.SensorState
-		err = proto.Unmarshal(message[:rlen], &sensorState)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		PanicError(db.Create(&sensorState.MainComputer).Error)
-		PanicError(db.Create(&sensorState.BrakeManager).Error)
-		// _, err = db.CreateMainComputer(context.Background(), int64(sensorState.MainComputer.State))
-		// PanicError(err)
-		// _, err = db.CreateBrakeManager(context.Background(), sqlc.CreateBrakeManagerParams{
-		// 	State:                                int64(sensorState.BrakeManager.State),
-		// 	HydrolicPressureLoss:                 sensorState.BrakeManager.HydrolicPressureLoss,
-		// 	CriticalPodAccelerationMesureTimeout: sensorState.BrakeManager.CriticalPodAccelerationMesureTimeout,
-		// 	CriticalPodDecelerationInstructionTimeout: sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
-		// 	VerinBlocked: sensorState.BrakeManager.VerinBlocked,
-		// 	EmergencyValveOpenWithoutHydrolicPressorDiminution: sensorState.BrakeManager.EmergencyValveOpenWithoutHydrolicPressorDiminution,
-		// 	CriticalEmergencyBrakesWithoutDeceleration:         sensorState.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration,
-		// 	MesuredDistanceLessThanDesired:                     sensorState.BrakeManager.MesuredDistanceLessThanDesired,
-		// 	MesuredDistanceGreaterAsDesired:                    sensorState.BrakeManager.MesuredDistanceGreaterAsDesired,
-		// })
-		// PanicError(err)
-
-		// count, err := db.GetMainComputerCount(context.Background())
-		// PanicError(err)
+		err = proto.Unmarshal(message[:size], &sensorState)
+		handleError(err)
+		// handleError(db.Create(&sensorState.MainComputer).Error)
+		// handleError(db.Create(&sensorState.BrakeManager).Error)
 		count++
-		log.Printf("[%s] : Count = %d\n", remote, count)
+		log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
 }
 
-func PanicError(err error) {
+func handleError(err error) {
 	if err != nil {
 		panic(err)
 	}
