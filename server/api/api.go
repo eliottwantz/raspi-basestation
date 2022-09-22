@@ -5,5 +5,7 @@ import (
 )
 
 func RegisterRoutes(api fiber.Router) {
-	api.Get("/sensorstate", HandleSensorState)
+	api.Get("/SensorState", HandleSensorState)
+	api.Get("/BrakeManager", HandleBrakeManager)
+	api.Get("/MainComputer", HandleMainComputer)
 }

@@ -17,6 +17,11 @@ type BrakeManager struct {
 	*pb.BrakeManager
 }
 
+type SensorState struct {
+	BrakeManager *BrakeManager `json:"brakeManager"`
+	MainComputer *MainComputer `json:"mainComputer"`
+}
+
 type Sensor struct {
 	ID     uint32 `gorm:"primarykey" json:"id"`
 	Name   string `json:"name"`
