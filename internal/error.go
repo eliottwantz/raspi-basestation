@@ -2,8 +2,8 @@ package internal
 
 import "log"
 
-func HandleError(err error) {
+func FatalError(err error) {
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatalln(err.Error())
 	}
 }

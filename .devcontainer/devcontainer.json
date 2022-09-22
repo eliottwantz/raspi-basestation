@@ -25,7 +25,8 @@
 				"ms-vscode.cmake-tools",
 				"ms-azuretools.vscode-docker",
 				"zxh404.vscode-proto3",
-				"golang.go"
+				"golang.go",
+				"svelte.svelte-vscode"
 			],
 			"settings": {
 				"go.toolsManagement.checkForUpdates": "local",
@@ -39,5 +40,8 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "export PATH=/go/bin:$PATH",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"remoteUser": "vscode",
+	"features": {
+		"node": "latest"
+	}
 }

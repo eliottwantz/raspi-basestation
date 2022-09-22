@@ -4,11 +4,19 @@ import (
 	"app/db"
 	"app/internal"
 	"app/pb"
+	"app/server/api"
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/etag"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -22,16 +30,40 @@ var (
 	sdCount = 0
 )
 
+func Start() {
+	ssc := make(chan int)
+	sdc := make(chan int)
+	quit := make(chan bool)
+	handleInterrupt(quit)
+	go ListenUDP(ssc, sdc, quit)
+	go StartApi()
+	<-quit
+	close(ssc)
+	close(sdc)
+	fmt.Println("\nSensorState COUNT =", ssCount)
+	fmt.Println("SensorData COUNT =", sdCount)
+}
+
+func handleInterrupt(quit chan bool) {
+	sigs := make(chan os.Signal)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		fmt.Println()
+		quit <- true
+	}()
+}
+
 func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
 	ssAddr, err := net.ResolveUDPAddr("udp", ":8080")
-	internal.HandleError(err)
+	internal.FatalError(err)
 	ssConn, err := net.ListenUDP("udp", ssAddr)
-	internal.HandleError(err)
+	internal.FatalError(err)
 
 	sdAddr, err := net.ResolveUDPAddr("udp", ":8081")
-	internal.HandleError(err)
+	internal.FatalError(err)
 	sdConn, err := net.ListenUDP("udp", sdAddr)
-	internal.HandleError(err)
+	internal.FatalError(err)
 
 	fmt.Println("server listening \n", ssConn.LocalAddr(), sdConn.LocalAddr())
 
@@ -50,11 +82,8 @@ func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
 		}
 	}()
 	<-quit
-	close(ssc)
-	close(sdc)
 	ssConn.Close()
-	fmt.Println("\nSensorState COUNT =", ssCount)
-	fmt.Println("SensorData COUNT =", sdCount)
+	sdConn.Close()
 }
 
 func HandleSensorState(conn *net.UDPConn, receive chan int) {
@@ -67,10 +96,10 @@ func HandleSensorState(conn *net.UDPConn, receive chan int) {
 		}
 		var sensorState pb.SensorState
 		err = proto.Unmarshal(message[:size], &sensorState)
-		internal.HandleError(err)
+		internal.FatalError(err)
 
-		internal.HandleError(db.DB.Create(&db.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
-		internal.HandleError(db.DB.Create(&db.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
+		internal.FatalError(db.DB.Create(&db.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
+		internal.FatalError(db.DB.Create(&db.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
@@ -88,12 +117,21 @@ func HandleSensorData(conn *net.UDPConn, receive chan int) {
 		}
 		var sensorData pb.SensorData
 		err = proto.Unmarshal(message[:size], &sensorData)
-		internal.HandleError(err)
+		internal.FatalError(err)
 
-		internal.HandleError(db.DB.Create(&db.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
+		internal.FatalError(db.DB.Create(&db.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
 
 		receive <- 1
 		count++
 		log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
+}
+
+func StartApi() {
+	fiberApi := fiber.New(fiber.Config{
+		Prefork: false,
+	})
+	fiberApi.Use(cors.New(), etag.New(), logger.New())
+	api.RegisterRoutes(fiberApi.Group("/api"))
+	log.Fatal(fiberApi.Listen(":8000"))
 }
