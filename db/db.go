@@ -34,8 +34,8 @@ func GetLatestBrakeManager() (*BrakeManager, error) {
 	return &bm, err
 }
 
-func GetLatestSensorData() (*SensorData, error) {
+func GetLatestSensorData(id uint32) (*SensorData, error) {
 	var sd SensorData
-	err := DB.Last(&sd).Error
+	err := DB.Last(&sd, id).Error
 	return &sd, err
 }
