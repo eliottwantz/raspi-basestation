@@ -2,6 +2,7 @@ package db
 
 import (
 	"app/internal"
+	"app/pb"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -13,7 +14,7 @@ var (
 
 func Open() {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("./db/polyloop.sqlite3"), &gorm.Config{
+	DB, err = gorm.Open(sqlite.Open("polyloop.sqlite3"), &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	internal.FatalError(err)
@@ -36,6 +37,6 @@ func GetLatestBrakeManager() (*BrakeManager, error) {
 
 func GetLatestSensorData(id uint32) (*SensorData, error) {
 	var sd SensorData
-	err := DB.Last(&sd, id).Error
+	err := DB.Where(&pb.SensorData{SensorId: id}).Last(&sd).Error
 	return &sd, err
 }

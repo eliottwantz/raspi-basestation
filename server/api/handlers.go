@@ -39,13 +39,13 @@ func HandleBrakeManager(c *fiber.Ctx) error {
 }
 
 func HandleSensorData(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	sID, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
-	bm, err := db.GetLatestSensorData(uint32(id))
+	sd, err := db.GetLatestSensorData(uint32(sID))
 	if err != nil {
 		return fiber.ErrNotFound
 	}
-	return c.JSON(&bm)
+	return c.JSON(&sd)
 }

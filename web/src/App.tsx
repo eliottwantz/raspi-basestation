@@ -17,11 +17,14 @@ const App: Component = () => {
           Fetch Sensor State
         </button>
         <form>
-          <input
-            type="text"
-            value={sensorId()}
-            onInput={(e) => setSensorId(e.currentTarget.value)}
-          />
+          <label>
+            Sensor ID
+            <input
+              type="text"
+              value={sensorId()}
+              onInput={(e) => setSensorId(e.currentTarget.value)}
+            />
+          </label>
           <button
             onClick={(e) => {
               e.preventDefault();

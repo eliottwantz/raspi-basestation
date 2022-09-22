@@ -7,7 +7,7 @@ proto:
 	pb/*.proto
 
 run:
-	rm -f db/polyloop.sqlite3
+	rm -f polyloop.sqlite3
 	go run .
 
 .PHONY:
