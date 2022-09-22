@@ -4,14 +4,14 @@ export const protobufPackage = "pb";
 
 export interface BrakeManager {
   state: BrakeManager_States;
-  hydrolicPressureLoss: boolean;
-  criticalPodAccelerationMesureTimeout: boolean;
-  criticalPodDecelerationInstructionTimeout: boolean;
-  verinBlocked: boolean;
-  emergencyValveOpenWithoutHydrolicPressorDiminution: boolean;
-  criticalEmergencyBrakesWithoutDeceleration: boolean;
-  mesuredDistanceLessThanDesired: boolean;
-  mesuredDistanceGreaterAsDesired: boolean;
+  hydrolicPressureLoss: number;
+  criticalPodAccelerationMesureTimeout: number;
+  criticalPodDecelerationInstructionTimeout: number;
+  verinBlocked: number;
+  emergencyValveOpenWithoutHydrolicPressorDiminution: number;
+  criticalEmergencyBrakesWithoutDeceleration: number;
+  mesuredDistanceLessThanDesired: number;
+  mesuredDistanceGreaterAsDesired: number;
 }
 
 export enum BrakeManager_States {

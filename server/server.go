@@ -2,6 +2,7 @@ package server
 
 import (
 	"app/db"
+	"app/db/sqlc"
 	"app/internal"
 	"app/pb"
 	"app/server/api"
@@ -26,22 +27,33 @@ const (
 )
 
 var (
-	ssCount = 0
-	sdCount = 0
+	ssCount  = 0
+	ssWCount = 0
+	sdCount  = 0
+	sdWCount = 0
+
+	ssc   = make(chan *pb.SensorState)
+	sdc   = make(chan *pb.SensorData)
+	sscc  = make(chan int)
+	sswcc = make(chan int)
+	sdcc  = make(chan int)
+	sdwcc = make(chan int)
+	quit  = make(chan bool)
 )
 
 func Start() {
-	ssc := make(chan int)
-	sdc := make(chan int)
-	quit := make(chan bool)
 	handleInterrupt(quit)
-	go ListenUDP(ssc, sdc, quit)
-	go StartApi()
+	go listenUDP()
+	go startApi()
+	go writeToDb()
 	<-quit
 	close(ssc)
 	close(sdc)
-	fmt.Println("\nSensorState COUNT =", ssCount)
-	fmt.Println("SensorData COUNT =", sdCount)
+	close(sscc)
+	close(sswcc)
+	close(sdcc)
+	close(sdwcc)
+	close(quit)
 }
 
 func handleInterrupt(quit chan bool) {
@@ -54,7 +66,7 @@ func handleInterrupt(quit chan bool) {
 	}()
 }
 
-func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
+func listenUDP() {
 	ssAddr, err := net.ResolveUDPAddr("udp", ":8080")
 	internal.FatalError(err)
 	ssConn, err := net.ListenUDP("udp", ssAddr)
@@ -68,17 +80,29 @@ func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
 	fmt.Println("server listening \n", ssConn.LocalAddr(), sdConn.LocalAddr())
 
 	for i := 0; i < WORKERS; i++ {
-		go HandleSensorState(ssConn, ssc)
-		go HandleSensorData(sdConn, sdc)
+		go handleSensorState(ssConn)
+		go handleSensorData(sdConn)
 	}
 	go func() {
-		for c := range ssc {
+		for c := range sscc {
 			ssCount += c
 		}
 	}()
 	go func() {
-		for c := range sdc {
+		for c := range sswcc {
+			ssWCount += c
+			fmt.Println("SensorStateWritten COUNT =", ssCount)
+		}
+	}()
+	go func() {
+		for c := range sdcc {
 			sdCount += c
+		}
+	}()
+	go func() {
+		for c := range sdwcc {
+			sdWCount += c
+			fmt.Println("SensorDataWritten COUNT =", sdWCount)
 		}
 	}()
 	<-quit
@@ -86,11 +110,11 @@ func ListenUDP(ssc chan int, sdc chan int, quit chan bool) {
 	sdConn.Close()
 }
 
-func HandleSensorState(conn *net.UDPConn, receive chan int) {
+func handleSensorState(conn *net.UDPConn) {
 	count := 0
 	for {
 		message := make([]byte, MAXLINE)
-		size, addr, err := conn.ReadFrom(message)
+		size, _, err := conn.ReadFrom(message)
 		if err != nil {
 			return
 		}
@@ -98,20 +122,19 @@ func HandleSensorState(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorState)
 		internal.FatalError(err)
 
-		internal.FatalError(db.DB.Create(&db.MainComputer{MainComputer: sensorState.MainComputer, CreatedAt: time.Now()}).Error)
-		internal.FatalError(db.DB.Create(&db.BrakeManager{BrakeManager: sensorState.BrakeManager, CreatedAt: time.Now()}).Error)
+		ssc <- &sensorState
 
-		receive <- 1
+		sscc <- 1
 		count++
-		log.Printf("[%s] : COUNT = %d\n", addr, count)
+		// log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
 }
 
-func HandleSensorData(conn *net.UDPConn, receive chan int) {
+func handleSensorData(conn *net.UDPConn) {
 	count := 0
 	for {
 		message := make([]byte, MAXLINE)
-		size, addr, err := conn.ReadFrom(message)
+		size, _, err := conn.ReadFrom(message)
 		if err != nil {
 			return
 		}
@@ -119,19 +142,54 @@ func HandleSensorData(conn *net.UDPConn, receive chan int) {
 		err = proto.Unmarshal(message[:size], &sensorData)
 		internal.FatalError(err)
 
-		internal.FatalError(db.DB.Create(&db.SensorData{SensorData: &sensorData, CreatedAt: time.Now()}).Error)
+		sdc <- &sensorData
 
-		receive <- 1
+		sdcc <- 1
 		count++
-		log.Printf("[%s] : COUNT = %d\n", addr, count)
+		// log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
 }
 
-func StartApi() {
+func startApi() {
 	fiberApi := fiber.New(fiber.Config{
 		Prefork: false,
 	})
 	fiberApi.Use(cors.New(), etag.New(), logger.New())
 	api.RegisterRoutes(fiberApi.Group("/api"))
 	log.Fatal(fiberApi.Listen(":8000"))
+}
+
+func writeToDb() {
+	for {
+		select {
+		case ss := <-ssc:
+			_, err := db.Queries.CreateMainComputer(db.Ctx, sqlc.CreateMainComputerParams{
+				CreatedAt: time.Now(),
+				State:     int64(ss.MainComputer.State),
+			})
+			internal.NotFatalError(err)
+			_, err = db.Queries.CreateBrakeManager(db.Ctx, sqlc.CreateBrakeManagerParams{
+				CreatedAt:                            time.Now(),
+				State:                                int64(ss.BrakeManager.State),
+				HydrolicPressureLoss:                 int64(ss.BrakeManager.HydrolicPressureLoss),
+				CriticalPodAccelerationMesureTimeout: int64(ss.BrakeManager.CriticalPodAccelerationMesureTimeout),
+				CriticalPodDecelerationInstructionTimeout: int64(ss.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration),
+				VerinBlocked: int64(ss.BrakeManager.VerinBlocked),
+				EmergencyValveOpenWithoutHydrolicPressorDiminution: int64(ss.BrakeManager.EmergencyValveOpenWithoutHydrolicPressorDiminution),
+				CriticalEmergencyBrakesWithoutDeceleration:         int64(ss.BrakeManager.CriticalEmergencyBrakesWithoutDeceleration),
+				MesuredDistanceLessThanDesired:                     int64(ss.BrakeManager.MesuredDistanceLessThanDesired),
+				MesuredDistanceGreaterAsDesired:                    int64(ss.BrakeManager.MesuredDistanceGreaterAsDesired),
+			})
+			internal.NotFatalError(err)
+			sswcc <- 1
+		case sd := <-sdc:
+			_, err := db.Queries.CreateSensorData(db.Ctx, sqlc.CreateSensorDataParams{
+				CreatedAt: time.Now(),
+				SensorID:  int64(sd.SensorId),
+				Value:     float64(sd.Value),
+			})
+			internal.NotFatalError(err)
+			sdwcc <- 1
+		}
+	}
 }

@@ -7,3 +7,9 @@ func FatalError(err error) {
 		log.Fatalln(err.Error())
 	}
 }
+
+func NotFatalError(err error) {
+	if err != nil {
+		log.Println(err.Error())
+	}
+}

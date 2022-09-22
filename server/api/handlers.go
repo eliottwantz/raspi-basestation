@@ -7,23 +7,23 @@ import (
 )
 
 func HandleSensorState(c *fiber.Ctx) error {
-	mc, err := db.GetLatestMainComputer()
+	mc, err := db.Queries.GetLatestMainComputer(db.Ctx)
 	if err != nil {
 		return fiber.ErrNotFound
 	}
-	bm, err := db.GetLatestBrakeManager()
+	bm, err := db.Queries.GetLatestBrakeManager(db.Ctx)
 	if err != nil {
 		return fiber.ErrNotFound
 	}
 	ss := db.SensorState{
-		MainComputer: mc,
-		BrakeManager: bm,
+		MainComputer: &mc,
+		BrakeManager: &bm,
 	}
 	return c.JSON(&ss)
 }
 
 func HandleMainComputer(c *fiber.Ctx) error {
-	mc, err := db.GetLatestMainComputer()
+	mc, err := db.Queries.GetLatestMainComputer(db.Ctx)
 	if err != nil {
 		return fiber.ErrNotFound
 	}
@@ -31,7 +31,7 @@ func HandleMainComputer(c *fiber.Ctx) error {
 }
 
 func HandleBrakeManager(c *fiber.Ctx) error {
-	bm, err := db.GetLatestBrakeManager()
+	bm, err := db.Queries.GetLatestBrakeManager(db.Ctx)
 	if err != nil {
 		return fiber.ErrNotFound
 	}
@@ -43,7 +43,7 @@ func HandleSensorData(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
-	sd, err := db.GetLatestSensorData(uint32(sID))
+	sd, err := db.Queries.GetLatestSensorData(db.Ctx, int64(sID))
 	if err != nil {
 		return fiber.ErrNotFound
 	}

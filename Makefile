@@ -10,6 +10,14 @@ run:
 	rm -f polyloop.sqlite3
 	go run .
 
+sqlc:
+	sqlc compile
+
+sql:
+	sqlc generate
+
 .PHONY:
 	proto
 	run
+	sqlc
+	sql

@@ -1,42 +1,38 @@
 package db
 
 import (
+	"app/db/sqlc"
 	"app/internal"
-	"app/pb"
+	"context"
+	"database/sql"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	_ "embed"
+
+	_ "modernc.org/sqlite"
 )
 
 var (
-	DB *gorm.DB
+	//go:embed sql/schema.sql
+	schema  string
+	DB      *sql.DB
+	Queries *sqlc.Queries
+	Ctx     context.Context
 )
 
 func Open() {
+	Ctx = context.Background()
 	var err error
-	DB, err = gorm.Open(sqlite.Open("polyloop.sqlite3"), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	DB, err = sql.Open("sqlite", "polyloop.sqlite3")
 	internal.FatalError(err)
-	internal.FatalError(DB.Exec("PRAGMA journal_mode=off").Error)
-	internal.FatalError(DB.AutoMigrate(&MainComputer{}, &BrakeManager{}, &Sensor{}, &SensorData{}))
-	internal.FatalError(DB.Create(&Sensor{Name: "premierSensor", Mesure: "km/h"}).Error)
-}
-
-func GetLatestMainComputer() (*MainComputer, error) {
-	var mc MainComputer
-	err := DB.Last(&mc).Error
-	return &mc, err
-}
-
-func GetLatestBrakeManager() (*BrakeManager, error) {
-	var bm BrakeManager
-	err := DB.Last(&bm).Error
-	return &bm, err
-}
-
-func GetLatestSensorData(id uint32) (*SensorData, error) {
-	var sd SensorData
-	err := DB.Where(&pb.SensorData{SensorId: id}).Last(&sd).Error
-	return &sd, err
+	_, err = DB.ExecContext(Ctx, "PRAGMA journal_mode=off")
+	internal.FatalError(err)
+	// create tables
+	_, err = DB.ExecContext(Ctx, schema)
+	internal.FatalError(err)
+	Queries = sqlc.New(DB)
+	_, err = Queries.CreateSensor(Ctx, sqlc.CreateSensorParams{
+		Name:   "premierSensor",
+		Mesure: "km/h",
+	})
+	internal.NotFatalError(err)
 }
