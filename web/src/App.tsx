@@ -1,21 +1,21 @@
-import { Component, createEffect, createSignal, For, Show } from "solid-js";
+import { Component, createEffect, createSignal, onMount, Show } from "solid-js";
 import {
   fetchSensorData,
+  fetchSensorState,
   sensorData,
   sensorState,
-  sensorStateReq,
 } from "./store";
+import { createWS, registerWSEvents } from "./ws";
 
 const App: Component = () => {
+  onMount(() => registerWSEvents(createWS()));
   const [sensorId, setSensorId] = createSignal<string>("");
   createEffect(() => console.log(sensorState()));
   createEffect(() => console.log(sensorData()));
   return (
     <div>
       <div>
-        <button onClick={() => sensorStateReq.refetch()}>
-          Fetch Sensor State
-        </button>
+        <button onClick={fetchSensorState}>Fetch Sensor State</button>
         <form>
           <label>
             Sensor ID
@@ -37,14 +37,14 @@ const App: Component = () => {
         </form>
       </div>
       <Show when={sensorState()}>
-        <For each={Object.keys(sensorState()!)}>
-          {(bm, i) => (
-            <div>
-              <div>{bm}</div>
-              <div>{JSON.stringify(Object.values(sensorState()!)[i()])}</div>
-            </div>
-          )}
-        </For>
+        <span>SensorState</span>
+        <pre>{JSON.stringify(sensorState(), null, 4)}</pre>
+      </Show>
+      <br />
+      <br />
+      <Show when={sensorData()}>
+        <span>SensorData</span>
+        <pre>{JSON.stringify(sensorData(), null, 4)}</pre>
       </Show>
     </div>
   );

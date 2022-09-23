@@ -5,19 +5,13 @@ import (
 	"app/db/sqlc"
 	"app/internal"
 	"app/pb"
-	"app/server/api"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/etag"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -34,6 +28,8 @@ var (
 
 	ssc   = make(chan *pb.SensorState)
 	sdc   = make(chan *pb.SensorData)
+	Wsss  = make(chan *db.SensorState)
+	Wssd  = make(chan *sqlc.SensorData)
 	sscc  = make(chan int)
 	sswcc = make(chan int)
 	sdcc  = make(chan int)
@@ -44,7 +40,6 @@ var (
 func Start() {
 	handleInterrupt(quit)
 	go listenUDP()
-	go startApi()
 	go writeToDb()
 	<-quit
 	close(ssc)
@@ -84,25 +79,19 @@ func listenUDP() {
 		go handleSensorData(sdConn)
 	}
 	go func() {
-		for c := range sscc {
-			ssCount += c
-		}
-	}()
-	go func() {
-		for c := range sswcc {
-			ssWCount += c
-			fmt.Println("SensorStateWritten COUNT =", ssCount)
-		}
-	}()
-	go func() {
-		for c := range sdcc {
-			sdCount += c
-		}
-	}()
-	go func() {
-		for c := range sdwcc {
-			sdWCount += c
-			fmt.Println("SensorDataWritten COUNT =", sdWCount)
+		for {
+			select {
+			case c := <-sscc:
+				ssCount += c
+			case c := <-sswcc:
+				ssWCount += c
+				fmt.Println("SensorStateWritten COUNT =", ssCount)
+			case c := <-sdcc:
+				sdCount += c
+			case c := <-sdwcc:
+				sdWCount += c
+				fmt.Println("SensorDataWritten COUNT =", sdWCount)
+			}
 		}
 	}()
 	<-quit
@@ -150,25 +139,16 @@ func handleSensorData(conn *net.UDPConn) {
 	}
 }
 
-func startApi() {
-	fiberApi := fiber.New(fiber.Config{
-		Prefork: false,
-	})
-	fiberApi.Use(cors.New(), etag.New(), logger.New())
-	api.RegisterRoutes(fiberApi.Group("/api"))
-	log.Fatal(fiberApi.Listen(":8000"))
-}
-
 func writeToDb() {
 	for {
 		select {
 		case ss := <-ssc:
-			_, err := db.Queries.CreateMainComputer(db.Ctx, sqlc.CreateMainComputerParams{
+			mc, err := db.Queries.CreateMainComputer(db.Ctx, sqlc.CreateMainComputerParams{
 				CreatedAt: time.Now(),
 				State:     int64(ss.MainComputer.State),
 			})
 			internal.NotFatalError(err)
-			_, err = db.Queries.CreateBrakeManager(db.Ctx, sqlc.CreateBrakeManagerParams{
+			bm, err := db.Queries.CreateBrakeManager(db.Ctx, sqlc.CreateBrakeManagerParams{
 				CreatedAt:                            time.Now(),
 				State:                                int64(ss.BrakeManager.State),
 				HydrolicPressureLoss:                 int64(ss.BrakeManager.HydrolicPressureLoss),
@@ -181,15 +161,21 @@ func writeToDb() {
 				MesuredDistanceGreaterAsDesired:                    int64(ss.BrakeManager.MesuredDistanceGreaterAsDesired),
 			})
 			internal.NotFatalError(err)
+
 			sswcc <- 1
+			Wsss <- &db.SensorState{
+				BrakeManager: &bm,
+				MainComputer: &mc,
+			}
 		case sd := <-sdc:
-			_, err := db.Queries.CreateSensorData(db.Ctx, sqlc.CreateSensorDataParams{
+			dbsd, err := db.Queries.CreateSensorData(db.Ctx, sqlc.CreateSensorDataParams{
 				CreatedAt: time.Now(),
 				SensorID:  int64(sd.SensorId),
 				Value:     float64(sd.Value),
 			})
 			internal.NotFatalError(err)
 			sdwcc <- 1
+			Wssd <- &dbsd
 		}
 	}
 }

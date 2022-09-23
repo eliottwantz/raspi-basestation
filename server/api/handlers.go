@@ -2,8 +2,11 @@ package api
 
 import (
 	"app/db"
+	"app/db/sqlc"
+	"app/server"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 func HandleSensorState(c *fiber.Ctx) error {
@@ -48,4 +51,39 @@ func HandleSensorData(c *fiber.Ctx) error {
 		return fiber.ErrNotFound
 	}
 	return c.JSON(&sd)
+}
+
+const (
+	SENSOR_STATE string = "state"
+	SENSOR_DATA  string = "data"
+)
+
+type SensorStateWSMessage struct {
+	Type string `json:"type"`
+	*db.SensorState
+}
+type SensorDataWSMessage struct {
+	Type       string           `json:"type"`
+	SensorData *sqlc.SensorData `json:"sensorData"`
+}
+
+func HandleWS() func(*fiber.Ctx) error {
+	return websocket.New(func(c *websocket.Conn) {
+		for {
+			select {
+			case ss := <-server.Wsss:
+				// c.WriteJSON(&SensorStateWSMessage{
+				// 	Type:        SENSOR_STATE,
+				// 	SensorState: ss,
+				// })
+				c.WriteJSON(&ss)
+			case sd := <-server.Wssd:
+				// c.WriteJSON(&SensorDataWSMessage{
+				// 	Type:       SENSOR_DATA,
+				// 	SensorData: sd,
+				// })
+				c.WriteJSON(&sd)
+			}
+		}
+	})
 }
