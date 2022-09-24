@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,7 +12,7 @@ import (
 	json "github.com/goccy/go-json"
 )
 
-func Start() {
+func Start(ipaddr *string) {
 	app := fiber.New(fiber.Config{
 		Prefork:     false,
 		JSONEncoder: json.Marshal,
@@ -19,8 +20,7 @@ func Start() {
 	})
 	app.Use(cors.New(), etag.New(), logger.New())
 	RegisterRoutes(app)
-	log.Fatal(app.Listen(":8000"))
-	// log.Fatal(app.Listen("10.0.0.221:8000")) // Raspi
+	log.Fatal(app.Listen(fmt.Sprint(*ipaddr, ":8000")))
 }
 
 func RegisterRoutes(app *fiber.App) {

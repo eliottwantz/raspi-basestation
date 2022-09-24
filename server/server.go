@@ -37,9 +37,9 @@ var (
 	quit  = make(chan bool)
 )
 
-func Start() {
+func Start(ipaddr *string) {
 	handleInterrupt(quit)
-	go listenUDP()
+	go listenUDP(ipaddr)
 	go writeToDb()
 	<-quit
 	close(ssc)
@@ -61,15 +61,13 @@ func handleInterrupt(quit chan bool) {
 	}()
 }
 
-func listenUDP() {
-	// ssAddr, err := net.ResolveUDPAddr("udp", "10.0.0.221:8080") // Raspi
-	ssAddr, err := net.ResolveUDPAddr("udp", ":8080")
+func listenUDP(ipaddr *string) {
+	ssAddr, err := net.ResolveUDPAddr("udp", fmt.Sprint(*ipaddr, ":8080"))
 	internal.FatalError(err)
 	ssConn, err := net.ListenUDP("udp", ssAddr)
 	internal.FatalError(err)
 
-	// sdAddr, err := net.ResolveUDPAddr("udp", "10.0.0.221:8081") // Raspi
-	sdAddr, err := net.ResolveUDPAddr("udp", ":8081")
+	sdAddr, err := net.ResolveUDPAddr("udp", fmt.Sprint(*ipaddr, ":8081"))
 	internal.FatalError(err)
 	sdConn, err := net.ListenUDP("udp", sdAddr)
 	internal.FatalError(err)
