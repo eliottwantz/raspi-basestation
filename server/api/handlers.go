@@ -69,6 +69,8 @@ type SensorDataWSMessage struct {
 
 func HandleWS() func(*fiber.Ctx) error {
 	return websocket.New(func(c *websocket.Conn) {
+		server.Wsss = make(chan *db.SensorState)
+		server.Wssd = make(chan *sqlc.SensorData)
 		for {
 			select {
 			case ss := <-server.Wsss:

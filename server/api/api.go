@@ -20,6 +20,7 @@ func Start() {
 	app.Use(cors.New(), etag.New(), logger.New())
 	RegisterRoutes(app)
 	log.Fatal(app.Listen(":8000"))
+	// log.Fatal(app.Listen("10.0.0.221:8000")) // Raspi
 }
 
 func RegisterRoutes(app *fiber.App) {

@@ -28,8 +28,8 @@ var (
 
 	ssc   = make(chan *pb.SensorState)
 	sdc   = make(chan *pb.SensorData)
-	Wsss  = make(chan *db.SensorState)
-	Wssd  = make(chan *sqlc.SensorData)
+	Wsss  chan *db.SensorState
+	Wssd  chan *sqlc.SensorData
 	sscc  = make(chan int)
 	sswcc = make(chan int)
 	sdcc  = make(chan int)
@@ -62,11 +62,13 @@ func handleInterrupt(quit chan bool) {
 }
 
 func listenUDP() {
+	// ssAddr, err := net.ResolveUDPAddr("udp", "10.0.0.221:8080") // Raspi
 	ssAddr, err := net.ResolveUDPAddr("udp", ":8080")
 	internal.FatalError(err)
 	ssConn, err := net.ListenUDP("udp", ssAddr)
 	internal.FatalError(err)
 
+	// sdAddr, err := net.ResolveUDPAddr("udp", "10.0.0.221:8081") // Raspi
 	sdAddr, err := net.ResolveUDPAddr("udp", ":8081")
 	internal.FatalError(err)
 	sdConn, err := net.ListenUDP("udp", sdAddr)
@@ -109,13 +111,12 @@ func handleSensorState(conn *net.UDPConn) {
 		}
 		var sensorState pb.SensorState
 		err = proto.Unmarshal(message[:size], &sensorState)
-		internal.FatalError(err)
+		internal.NotFatalError(err)
 
 		ssc <- &sensorState
 
 		sscc <- 1
 		count++
-		// log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
 }
 
@@ -129,13 +130,12 @@ func handleSensorData(conn *net.UDPConn) {
 		}
 		var sensorData pb.SensorData
 		err = proto.Unmarshal(message[:size], &sensorData)
-		internal.FatalError(err)
+		internal.NotFatalError(err)
 
 		sdc <- &sensorData
 
 		sdcc <- 1
 		count++
-		// log.Printf("[%s] : COUNT = %d\n", addr, count)
 	}
 }
 
@@ -163,9 +163,11 @@ func writeToDb() {
 			internal.NotFatalError(err)
 
 			sswcc <- 1
-			Wsss <- &db.SensorState{
-				BrakeManager: &bm,
-				MainComputer: &mc,
+			if Wssd != nil {
+				Wsss <- &db.SensorState{
+					BrakeManager: &bm,
+					MainComputer: &mc,
+				}
 			}
 		case sd := <-sdc:
 			dbsd, err := db.Queries.CreateSensorData(db.Ctx, sqlc.CreateSensorDataParams{
@@ -175,7 +177,9 @@ func writeToDb() {
 			})
 			internal.NotFatalError(err)
 			sdwcc <- 1
-			Wssd <- &dbsd
+			if Wssd != nil {
+				Wssd <- &dbsd
+			}
 		}
 	}
 }
