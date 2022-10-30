@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/vscode/devcontainers/go:0-1-bullseye AS Go
+# FROM mcr.microsoft.com/vscode/devcontainers/go:0-1-bullseye AS Go
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/cpp/.devcontainer/base.Dockerfile
 
 # [Choice] Debian / Ubuntu version (use Debian 11, Ubuntu 18.04/22.04 on local arm64/Apple Silicon): debian-11, debian-10, ubuntu-22.04, ubuntu-20.04, ubuntu-18.04
@@ -26,13 +26,13 @@ RUN cd /tmp && wget https://github.com/protocolbuffers/protobuf/releases/downloa
 RUN cd /opt/protobuf-3.21.6 && cmake . && cmake --build . --parallel 10
 RUN cd /opt/protobuf-3.21.6 && cmake --install .
 
-COPY --from=Go /go /go
-COPY --from=Go /usr/local/go /usr/local/go
-ENV GOROOT=/usr/local/go \
-    GOPATH=/go
-ENV PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
-RUN chown -R vscode ${GOPATH} ${GOROOT}
+# COPY --from=Go /go /go
+# COPY --from=Go /usr/local/go /usr/local/go
+# ENV GOROOT=/usr/local/go \
+#     GOPATH=/go
+# ENV PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
+# RUN chown -R vscode ${GOPATH} ${GOROOT}
 
-USER vscode
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-RUN go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+# USER vscode
+# RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+# RUN go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
