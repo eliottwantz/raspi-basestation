@@ -34,7 +34,12 @@ sockaddr_in fillServerInfo(uint16_t port)
 
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(port);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    // For local dev in docker container
+    // servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    // For wifi
+    inet_pton(AF_INET, "10.0.0.221", &(servaddr.sin_addr));
 
     return servaddr;
 }
@@ -103,6 +108,12 @@ int main()
             pb::SensorData *sensor_data = createNewSensorData();
             sendSensorState(ss_socket, ssaddr, sensor_state);
             sendSensorData(sd_socket, sdaddr, sensor_data);
+
+            // std::string msg = "Hello";
+            // sendto(ss_socket, msg.c_str(), msg.length(),
+            //        MSG_CONFIRM, (const struct sockaddr *)&ssaddr,
+            //        sizeof(ssaddr));
+
             start_interval = std::clock();
             count++;
             std::cout << "printf: " << duration << " count: " << count << '\n';

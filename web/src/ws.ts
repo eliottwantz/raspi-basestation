@@ -1,17 +1,17 @@
-import { SensorData } from "../pb/sensor";
-import { SensorState } from "../pb/sensorstate";
-import { setSensorData, setSensorState } from "./store";
+import { SensorData } from '../pb/sensor';
+import { SensorState } from '../pb/sensorstate';
+import { setSensorData, setSensorState } from './store';
 
 type WSMessage = SensorData | SensorState;
 
 export function createWS(): WebSocket {
-  return new WebSocket("ws://10.0.0.221:8000/ws/"); // Raspi
-  // return new WebSocket("ws://localhost:8000/ws/");
+  return new WebSocket('ws://10.0.0.221:8000/ws/'); // Raspi
+  // return new WebSocket('ws://localhost:8000/ws/');
 }
 
 export function registerWSEvents(ws: WebSocket) {
   ws.onopen = function () {
-    console.log("WEB SOCKET OPENED");
+    console.log('WEB SOCKET OPENED');
   };
 
   ws.onmessage = function (event: MessageEvent<any>) {
@@ -23,6 +23,6 @@ export function registerWSEvents(ws: WebSocket) {
   };
 
   ws.onclose = function () {
-    console.log("WEB SOCKET CLOSED");
+    console.log('WEB SOCKET CLOSED');
   };
 }
