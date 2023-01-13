@@ -5,7 +5,8 @@ import { setSensorData, setSensorState } from './store';
 type WSMessage = SensorData | SensorState;
 
 export function createWS(): WebSocket {
-  return new WebSocket('ws://10.0.0.221:8000/ws/'); // Raspi
+  return new WebSocket('ws://192.168.1.13:8000/ws/'); // Raspi
+  // return new WebSocket('ws://10.0.0.221:8000/ws/'); // Raspi
   // return new WebSocket('ws://localhost:8000/ws/');
 }
 
